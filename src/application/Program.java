@@ -1,5 +1,6 @@
 package application;
 
+import exceptions.TaxExceptions;
 import model.entities.Contract;
 import model.entities.Installment;
 import model.services.ContractService;
@@ -12,6 +13,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.InputMismatchException;
 import java.util.Locale;
 import java.util.Scanner;
 
@@ -23,28 +25,35 @@ public class Program {
         DateTimeFormatter localDate = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
         System.out.println("Entre com os dados do contrato: ");
+        try {
+            System.out.print("Numero: ");
+            int number = sc.nextInt();
 
-        System.out.print("Numero: ");
-        int number = sc.nextInt();
+            System.out.print("Date: ");
+            LocalDate date = LocalDate.parse(sc.next(), localDate);
 
-        System.out.print("Date: ");
-        LocalDate date = LocalDate.parse(sc.next(), localDate);
+            System.out.println("Valor do contrato: ");
+            double contractValue = sc.nextDouble();
 
-        System.out.println("Valor do contrato: ");
-        double contractValue = sc.nextDouble();
+            Contract contract = new Contract(number, date, contractValue);
 
-        Contract contract = new Contract(number, date, contractValue);
+            System.out.println("Entre com o numero de parcelas: ");
+            int numOfInstallments = sc.nextInt();
 
-        System.out.println("Entre com o numero de parcelas: ");
-        int numOfInstallments = sc.nextInt();
+            ContractService contractService = new ContractService(new PaypalService());
+            contractService.processContract(contract, numOfInstallments);
 
-        ContractService contractService = new ContractService(new PaypalService());
-        contractService.processContract(contract, numOfInstallments);
+            System.out.println("PARCERLAS: ");
+            for(Installment installment : contract.getInstallmentsList()) {
+                System.out.println(installment);
+            }
 
-        System.out.println("PARCERLAS: ");
-        for(Installment installment : contract.getInstallmentsList()) {
-            System.out.println(installment);
         }
-
+        catch (InputMismatchException error) {
+            System.out.println("Error of input: " + error.getMessage());
+        }
+        finally {
+            sc.close();
+        }
     }
 }
